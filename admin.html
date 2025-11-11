@@ -6,8 +6,92 @@
     <title>Barf Malai - Admin</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        <?!= include('style.css'); ?>
-        
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', 'Inter', sans-serif;
+            background: #fdf2f8;
+            color: #222;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            text-decoration: none;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff4e88, #ff8e53);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 78, 136, 0.3);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.875em;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #ff4e88;
+            box-shadow: 0 0 0 3px rgba(255, 78, 136, 0.1);
+        }
+
+        textarea.form-input {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Admin Specific Styles */
         .admin-panel {
             background: #fff;
             border-radius: 15px;
@@ -82,10 +166,6 @@
             gap: 20px;
         }
         
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
         .form-group.full-width {
             grid-column: 1 / -1;
         }
@@ -132,14 +212,52 @@
             font-weight: 600;
         }
         
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 0.875em;
-        }
-        
         .action-buttons {
             display: flex;
             gap: 8px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1003;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-nav {
+                flex-wrap: wrap;
+            }
+            
+            .nav-tab {
+                padding: 10px 15px;
+                font-size: 0.9em;
+            }
         }
     </style>
 </head>
@@ -161,11 +279,21 @@
         <div id="dashboard" class="tab-content active">
             <h2>Business Overview</h2>
             <div class="stats-grid" id="statsGrid">
-                <!-- Stats will be loaded here -->
-            </div>
-            
-            <div class="chart-container">
-                <canvas id="salesChart" width="400" height="200"></canvas>
+                <div class="stat-card">
+                    <h3>Total Sales</h3>
+                    <div class="stat-number">₹0</div>
+                    <p>Loading...</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Orders</h3>
+                    <div class="stat-number">0</div>
+                    <p>Loading...</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Most Popular</h3>
+                    <div class="stat-number" style="font-size: 1.2em;">Loading...</div>
+                    <p>Best selling item</p>
+                </div>
             </div>
             
             <h3 style="margin-top: 30px;">Recent Orders</h3>
@@ -181,7 +309,7 @@
                         </tr>
                     </thead>
                     <tbody id="recentOrders">
-                        <!-- Recent orders will be loaded here -->
+                        <tr><td colspan="5" style="text-align: center;">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -209,7 +337,7 @@
                 <div>
                     <h3>Manage Categories</h3>
                     <div id="categoriesList" class="table-container">
-                        <!-- Categories will be loaded here -->
+                        <p>Loading categories...</p>
                     </div>
                 </div>
             </div>
@@ -228,7 +356,7 @@
                         <div class="form-group">
                             <label>Category</label>
                             <select id="productCategory" required class="form-input">
-                                <!-- Categories will be loaded here -->
+                                <option value="">Loading...</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -251,7 +379,7 @@
                 <div>
                     <h3>Manage Products</h3>
                     <div id="productsList" class="table-container">
-                        <!-- Products will be loaded here -->
+                        <p>Loading products...</p>
                     </div>
                 </div>
             </div>
@@ -274,16 +402,22 @@
                         </tr>
                     </thead>
                     <tbody id="ordersList">
-                        <!-- Orders will be loaded here -->
+                        <tr><td colspan="7" style="text-align: center;">Loading orders...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
+    <!-- Success Toast -->
+    <div class="toast" id="successToast">
+        <div class="toast-content">
+            <span class="toast-icon">✅</span>
+            <span class="toast-message" id="toastMessage">Operation successful!</span>
+        </div>
+    </div>
+
     <script>
-        <?!= include('script.js'); ?>
-        
         // Admin-specific JavaScript
         function switchTab(tabName) {
             // Hide all tabs
@@ -487,7 +621,7 @@
                             </select>
                         </td>
                         <td>
-                            <button class="btn btn-sm btn-info" onclick="viewOrderDetails('${order.timestamp}')">View</button>
+                            <button class="btn btn-sm btn-warning" onclick="viewOrderDetails('${order.timestamp}')">View</button>
                         </td>
                     </tr>
                 `).join('');
@@ -516,6 +650,127 @@
                 }
                 reader.readAsDataURL(file);
             }
+        }
+        
+        // Category management
+        function addNewCategory(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('categoryName').value;
+            const imageInput = document.getElementById('categoryImage');
+            
+            if (!imageInput.files[0]) {
+                showError('Please select an image');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                google.script.run
+                    .withSuccessHandler(function(response) {
+                        showToast('Category added successfully!');
+                        document.getElementById('categoryForm').reset();
+                        document.getElementById('categoryPreview').style.display = 'none';
+                        loadCategories();
+                    })
+                    .withFailureHandler(showError)
+                    .addCategory(name, e.target.result);
+            };
+            reader.readAsDataURL(imageInput.files[0]);
+        }
+        
+        function editCategory(categoryId) {
+            showToast('Edit category functionality coming soon!');
+        }
+        
+        function deleteCategory(categoryId) {
+            if (confirm('Are you sure you want to delete this category?')) {
+                google.script.run
+                    .withSuccessHandler(function() {
+                        showToast('Category deleted successfully!');
+                        loadCategories();
+                    })
+                    .withFailureHandler(showError)
+                    .deleteCategory(categoryId);
+            }
+        }
+        
+        // Product management
+        function addNewProduct(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('productName').value;
+            const category = document.getElementById('productCategory').value;
+            const price = document.getElementById('productPrice').value;
+            const description = document.getElementById('productDescription').value;
+            const imageInput = document.getElementById('productImage');
+            
+            if (!imageInput.files[0]) {
+                showError('Please select an image');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                google.script.run
+                    .withSuccessHandler(function(response) {
+                        showToast('Product added successfully!');
+                        document.getElementById('productForm').reset();
+                        document.getElementById('productPreview').style.display = 'none';
+                        loadProducts();
+                    })
+                    .withFailureHandler(showError)
+                    .addProduct(category, name, price, e.target.result, description);
+            };
+            reader.readAsDataURL(imageInput.files[0]);
+        }
+        
+        function editProduct(productId) {
+            showToast('Edit product functionality coming soon!');
+        }
+        
+        function deleteProduct(productId) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                google.script.run
+                    .withSuccessHandler(function() {
+                        showToast('Product deleted successfully!');
+                        loadProducts();
+                    })
+                    .withFailureHandler(showError)
+                    .deleteProduct(productId);
+            }
+        }
+        
+        // Order management
+        function updateOrderStatus(timestamp, status) {
+            google.script.run
+                .withSuccessHandler(function() {
+                    showToast('Order status updated!');
+                })
+                .withFailureHandler(showError)
+                .updateOrderStatus(timestamp, status);
+        }
+        
+        function viewOrderDetails(timestamp) {
+            showToast('Order details view coming soon!');
+        }
+        
+        // Utility functions
+        function showError(error) {
+            console.error('Error:', error);
+            alert('An error occurred: ' + error.message);
+        }
+        
+        function showToast(message) {
+            const toast = document.getElementById('successToast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
         }
         
         // Initialize admin panel
