@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barf Malai - Admin</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        <?!= include('style.css'); ?>
+        
+        .admin-panel {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin: 20px;
+            overflow: hidden;
+        }
+        
+        .admin-header {
+            background: linear-gradient(135deg, #ff4e88, #ff8e53);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .admin-nav {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .nav-tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-tab.active {
+            background: #fff;
+            border-bottom: 3px solid #ff4e88;
+            color: #ff4e88;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 25px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            text-align: center;
+            border-left: 4px solid #ff4e88;
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #ff4e88;
+            margin: 10px 0;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .image-preview {
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            color: #ffc107;
+            font-weight: 600;
+        }
+        
+        .status-completed {
+            color: #28a745;
+            font-weight: 600;
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.875em;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-panel">
+        <div class="admin-header">
+            <h1>❄️ Barf Malai Admin</h1>
+            <p>Manage your ice cream business efficiently</p>
+        </div>
+        
+        <div class="admin-nav">
+            <button class="nav-tab active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+            <button class="nav-tab" onclick="switchTab('categories')">🏷️ Categories</button>
+            <button class="nav-tab" onclick="switchTab('products')">🍦 Products</button>
+            <button class="nav-tab" onclick="switchTab('orders')">📦 Orders</button>
+        </div>
+        
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <h2>Business Overview</h2>
+            <div class="stats-grid" id="statsGrid">
+                <!-- Stats will be loaded here -->
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="salesChart" width="400" height="200"></canvas>
+            </div>
+            
+            <h3 style="margin-top: 30px;">Recent Orders</h3>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Customer</th>
+                            <th>Phone</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentOrders">
+                        <!-- Recent orders will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Categories Tab -->
+        <div id="categories" class="tab-content">
+            <div class="form-grid">
+                <div>
+                    <h3>Add New Category</h3>
+                    <form id="categoryForm" onsubmit="addNewCategory(event)">
+                        <div class="form-group">
+                            <label>Category Name</label>
+                            <input type="text" id="categoryName" required class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Category Image</label>
+                            <input type="file" id="categoryImage" accept="image/*" required class="form-input">
+                            <img id="categoryPreview" class="image-preview">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Category</button>
+                    </form>
+                </div>
+                
+                <div>
+                    <h3>Manage Categories</h3>
+                    <div id="categoriesList" class="table-container">
+                        <!-- Categories will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Products Tab -->
+        <div id="products" class="tab-content">
+            <div class="form-grid">
+                <div>
+                    <h3>Add New Product</h3>
+                    <form id="productForm" onsubmit="addNewProduct(event)">
+                        <div class="form-group">
+                            <label>Product Name</label>
+                            <input type="text" id="productName" required class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select id="productCategory" required class="form-input">
+                                <!-- Categories will be loaded here -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Price (₹)</label>
+                            <input type="number" id="productPrice" step="0.01" required class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea id="productDescription" class="form-input" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Product Image</label>
+                            <input type="file" id="productImage" accept="image/*" required class="form-input">
+                            <img id="productPreview" class="image-preview">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Product</button>
+                    </form>
+                </div>
+                
+                <div>
+                    <h3>Manage Products</h3>
+                    <div id="productsList" class="table-container">
+                        <!-- Products will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Orders Tab -->
+        <div id="orders" class="tab-content">
+            <h3>All Orders</h3>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Order Time</th>
+                            <th>Customer</th>
+                            <th>Phone</th>
+                            <th>Items</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersList">
+                        <!-- Orders will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        <?!= include('script.js'); ?>
+        
+        // Admin-specific JavaScript
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked nav tab
+            event.target.classList.add('active');
+            
+            // Load data for the tab
+            if (tabName === 'dashboard') {
+                loadDashboard();
+            } else if (tabName === 'categories') {
+                loadCategories();
+            } else if (tabName === 'products') {
+                loadProducts();
+            } else if (tabName === 'orders') {
+                loadOrders();
+            }
+        }
+        
+        function loadDashboard() {
+            google.script.run
+                .withSuccessHandler(displayDashboard)
+                .withFailureHandler(showError)
+                .getAnalytics();
+        }
+        
+        function displayDashboard(data) {
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <h3>Total Sales</h3>
+                    <div class="stat-number">₹${data.totalSales}</div>
+                    <p>All time revenue</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Orders</h3>
+                    <div class="stat-number">${data.totalOrders}</div>
+                    <p>Completed orders</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Most Popular</h3>
+                    <div class="stat-number" style="font-size: 1.2em;">${data.mostOrderedItem}</div>
+                    <p>Best selling item</p>
+                </div>
+            `;
+            
+            // Update recent orders
+            const recentOrders = document.getElementById('recentOrders');
+            if (data.recentOrders.length > 0) {
+                recentOrders.innerHTML = data.recentOrders.map(order => `
+                    <tr>
+                        <td>${new Date(order.timestamp).toLocaleString()}</td>
+                        <td>${order.customerName}</td>
+                        <td>${order.phone}</td>
+                        <td>₹${order.total}</td>
+                        <td><span class="status-${order.status.toLowerCase()}">${order.status}</span></td>
+                    </tr>
+                `).join('');
+            } else {
+                recentOrders.innerHTML = '<tr><td colspan="5" style="text-align: center;">No orders yet</td></tr>';
+            }
+        }
+        
+        // Load categories for admin
+        function loadCategories() {
+            google.script.run
+                .withSuccessHandler(displayCategories)
+                .withFailureHandler(showError)
+                .getCategories();
+        }
+        
+        function displayCategories(categories) {
+            const categoriesList = document.getElementById('categoriesList');
+            
+            if (categories.length > 0) {
+                categoriesList.innerHTML = `
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${categories.map(cat => `
+                                <tr>
+                                    <td><img src="${cat.imageUrl}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"></td>
+                                    <td>${cat.name}</td>
+                                    <td class="action-buttons">
+                                        <button class="btn btn-sm btn-warning" onclick="editCategory('${cat.id}')">Edit</button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteCategory('${cat.id}')">Delete</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } else {
+                categoriesList.innerHTML = '<p>No categories found. Add your first category!</p>';
+            }
+        }
+        
+        // Load products for admin
+        function loadProducts() {
+            Promise.all([
+                new Promise((resolve) => {
+                    google.script.run
+                        .withSuccessHandler(resolve)
+                        .withFailureHandler(showError)
+                        .getCategories();
+                }),
+                new Promise((resolve) => {
+                    google.script.run
+                        .withSuccessHandler(resolve)
+                        .withFailureHandler(showError)
+                        .getProducts();
+                })
+            ]).then(([categories, products]) => {
+                displayProducts(products, categories);
+            });
+        }
+        
+        function displayProducts(products, categories) {
+            const productsList = document.getElementById('productsList');
+            const categorySelect = document.getElementById('productCategory');
+            
+            // Update category dropdown
+            categorySelect.innerHTML = categories.map(cat => 
+                `<option value="${cat.name}">${cat.name}</option>`
+            ).join('');
+            
+            // Display products table
+            if (products.length > 0) {
+                productsList.innerHTML = `
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${products.map(product => `
+                                <tr>
+                                    <td><img src="${product.imageUrl}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"></td>
+                                    <td>${product.name}</td>
+                                    <td>${product.category}</td>
+                                    <td>₹${product.price}</td>
+                                    <td class="action-buttons">
+                                        <button class="btn btn-sm btn-warning" onclick="editProduct('${product.id}')">Edit</button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteProduct('${product.id}')">Delete</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } else {
+                productsList.innerHTML = '<p>No products found. Add your first product!</p>';
+            }
+        }
+        
+        // Load orders for admin
+        function loadOrders() {
+            google.script.run
+                .withSuccessHandler(displayOrders)
+                .withFailureHandler(showError)
+                .getOrders();
+        }
+        
+        function displayOrders(orders) {
+            const ordersList = document.getElementById('ordersList');
+            
+            if (orders.length > 0) {
+                ordersList.innerHTML = orders.map(order => `
+                    <tr>
+                        <td>${new Date(order.timestamp).toLocaleString()}</td>
+                        <td>${order.customerName}</td>
+                        <td>${order.phone}</td>
+                        <td>${order.items.map(item => `${item.quantity}x ${item.name}`).join(', ')}</td>
+                        <td>₹${order.total}</td>
+                        <td>
+                            <select onchange="updateOrderStatus('${order.timestamp}', this.value)" class="form-input">
+                                <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                                <option value="Completed" ${order.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                            </select>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-info" onclick="viewOrderDetails('${order.timestamp}')">View</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                ordersList.innerHTML = '<tr><td colspan="7" style="text-align: center;">No orders yet</td></tr>';
+            }
+        }
+        
+        // Image preview handlers
+        document.getElementById('categoryImage').addEventListener('change', function(e) {
+            previewImage(e.target, 'categoryPreview');
+        });
+        
+        document.getElementById('productImage').addEventListener('change', function(e) {
+            previewImage(e.target, 'productPreview');
+        });
+        
+        function previewImage(input, previewId) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById(previewId);
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // Initialize admin panel
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboard();
+        });
+    </script>
+</body>
+</html>
