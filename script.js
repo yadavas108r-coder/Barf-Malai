@@ -1,6 +1,6 @@
 // Barf Malai - User Frontend JavaScript
 // Configuration - Update this with your deployed Apps Script URL
-const SHEET_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyIu_y5diXbxH2-5v8aosjaTjlLvxE_O8iLR-htUKVJwHybAyeaCMqTm1yQdFbY1AsItQ/exec';
 
 class BarfMalaiApp {
     constructor() {
