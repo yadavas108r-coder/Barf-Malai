@@ -1,20 +1,14 @@
-# Barf Malai - Food Ordering System
+## Image Upload Setup
 
-A complete mobile-first food ordering system with admin dashboard, built on Google Apps Script and Google Sheets.
+### Imgur Configuration
 
-## Files Structure
+1. **Get Imgur Client ID:**
+   - Go to https://api.imgur.com/oauth2/addclient
+   - Register a new application
+   - Choose "OAuth 2 authorization without a callback URL"
+   - Get your Client ID
 
-- `Code.gs` - Google Apps Script backend
-- `user.html` - Customer ordering interface
-- `admin.html` - Admin dashboard
-- `style.css` - Common styles for both interfaces
-- `script.js` - Customer frontend logic
-- `admin.js` - Admin dashboard logic
-
-## Setup Instructions
-
-### 1. Create Google Sheet
-
-Create a new Google Spreadsheet with these exact sheets and headers:
-
-**Sheet 1: Categories**
+2. **Update Admin Configuration:**
+   - In `admin.js`, replace `YOUR_IMGUR_CLIENT_ID` with your actual Imgur Client ID:
+   ```javascript
+   this.imgurClientId = 'your_actual_imgur_client_id_here';
