@@ -1,6 +1,6 @@
 // Barf Malai - Admin Dashboard JavaScript
 // Configuration - Update this with your deployed Apps Script URL
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzC9a5OXsLj6Mms8qPi6TRy5DzCrTnKnYYgZDHc9rzT_D98tGWvabmG898z8UMlI4rOEA/exec';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyIu_y5diXbxH2-5v8aosjaTjlLvxE_O8iLR-htUKVJwHybAyeaCMqTm1yQdFbY1AsItQ/exec';
 
 class BarfMalaiAdmin {
     constructor() {
@@ -84,7 +84,7 @@ class BarfMalaiAdmin {
             
             Object.keys(params).forEach(key => {
                 if (params[key] !== undefined && params[key] !== null) {
-                    url.searchParams.set(key, params[key]);
+                    url.searchParams.set(key, encodeURIComponent(params[key]));
                 }
             });
 
@@ -97,8 +97,11 @@ class BarfMalaiAdmin {
             
             // Define the callback function
             window[callbackName] = (response) => {
+                // Clean up
                 delete window[callbackName];
-                document.body.removeChild(script);
+                if (script.parentNode) {
+                    script.parentNode.removeChild(script);
+                }
                 
                 if (response.status === 'success') {
                     resolve(response);
@@ -110,8 +113,10 @@ class BarfMalaiAdmin {
             // Error handling
             script.onerror = () => {
                 delete window[callbackName];
-                document.body.removeChild(script);
-                reject(new Error('Network error: Failed to load script'));
+                if (script.parentNode) {
+                    script.parentNode.removeChild(script);
+                }
+                reject(new Error('Network error: Failed to load script. Check your web app URL.'));
             };
 
             // Add to document
@@ -121,7 +126,9 @@ class BarfMalaiAdmin {
             setTimeout(() => {
                 if (window[callbackName]) {
                     delete window[callbackName];
-                    document.body.removeChild(script);
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
                     reject(new Error('Request timeout'));
                 }
             }, 30000);
