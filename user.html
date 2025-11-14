@@ -2,8 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Barf Malai - Premium Ice Cream</title>
+    <meta name="theme-color" content="#ff6b6b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -13,7 +16,7 @@
         <div class="header-content">
             <div class="logo">🍦 Barf Malai</div>
             <button class="cart-btn" id="cartToggle">
-                🛒 Cart (<span id="cartCount">0</span>)
+                🛒 <span id="cartCount">0</span>
             </button>
         </div>
     </header>
@@ -24,6 +27,11 @@
             <!-- Categories will be loaded here -->
         </div>
     </section>
+
+    <!-- Mobile Search -->
+    <div class="mobile-search">
+        <input type="text" class="search-input" placeholder="🔍 Search products..." id="searchInput">
+    </div>
 
     <!-- Products Grid -->
     <main class="products-grid" id="productsContainer">
@@ -47,23 +55,23 @@
             <form class="checkout-form" id="checkoutForm">
                 <div class="form-group">
                     <label for="userName" class="required">Full Name</label>
-                    <input type="text" id="userName" name="userName" required minlength="2">
+                    <input type="text" id="userName" name="userName" required minlength="2" placeholder="Enter your name">
                 </div>
                 <div class="form-group">
                     <label for="phone" class="required">Phone Number</label>
-                    <input type="tel" id="phone" name="phone" required>
+                    <input type="tel" id="phone" name="phone" required placeholder="Enter your phone number">
                 </div>
                 <div class="form-group">
                     <label for="userEmail">Email (optional)</label>
-                    <input type="email" id="userEmail" name="userEmail">
+                    <input type="email" id="userEmail" name="userEmail" placeholder="Enter your email">
                 </div>
                 <div class="form-group">
                     <label for="userTable">Table Number (optional)</label>
-                    <input type="text" id="userTable" name="userTable">
+                    <input type="text" id="userTable" name="userTable" placeholder="Enter table number">
                 </div>
                 <div class="form-group">
                     <label for="userNote">Special Instructions (optional)</label>
-                    <textarea id="userNote" name="userNote" rows="3"></textarea>
+                    <textarea id="userNote" name="userNote" rows="3" placeholder="Any special requests..."></textarea>
                 </div>
                 <button type="submit" class="checkout-btn" id="checkoutBtn" disabled>
                     Place Order - ₹<span id="checkoutTotal">0</span>
@@ -71,6 +79,26 @@
             </form>
         </div>
     </div>
+
+    <!-- Bottom Navigation - Mobile Only -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="app.showSection('menu')">
+            <span class="nav-icon">🍦</span>
+            <span class="nav-label">Menu</span>
+        </button>
+        <button class="nav-item" onclick="app.showSection('categories')">
+            <span class="nav-icon">📂</span>
+            <span class="nav-label">Categories</span>
+        </button>
+        <button class="nav-item" onclick="app.toggleCart()">
+            <span class="nav-icon">🛒</span>
+            <span class="nav-label">Cart</span>
+        </button>
+        <button class="nav-item" onclick="app.showSection('account')">
+            <span class="nav-icon">👤</span>
+            <span class="nav-label">Account</span>
+        </button>
+    </nav>
 
     <!-- Overlay -->
     <div class="overlay" id="overlay"></div>
