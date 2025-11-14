@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barf Malai - Premium Ice Cream</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">🍦 Barf Malai</div>
+            <button class="cart-btn" id="cartToggle">
+                🛒 Cart (<span id="cartCount">0</span>)
+            </button>
+        </div>
+    </header>
+
+    <!-- Categories -->
+    <section class="categories">
+        <div class="categories-scroll" id="categoriesContainer">
+            <!-- Categories will be loaded here -->
+        </div>
+    </section>
+
+    <!-- Products Grid -->
+    <main class="products-grid" id="productsContainer">
+        <!-- Products will be loaded here -->
+    </main>
+
+    <!-- Cart Drawer -->
+    <div class="cart-drawer" id="cartDrawer">
+        <div class="cart-header">
+            <h2 class="cart-title">Your Order</h2>
+            <button class="close-cart" id="closeCart">×</button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <!-- Cart items will be loaded here -->
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span>₹<span id="cartTotal">0</span></span>
+            </div>
+            <form class="checkout-form" id="checkoutForm">
+                <div class="form-group">
+                    <label for="userName" class="required">Full Name</label>
+                    <input type="text" id="userName" name="userName" required minlength="2">
+                </div>
+                <div class="form-group">
+                    <label for="phone" class="required">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" required>
+                </div>
+                <div class="form-group">
+                    <label for="userEmail">Email (optional)</label>
+                    <input type="email" id="userEmail" name="userEmail">
+                </div>
+                <div class="form-group">
+                    <label for="userTable">Table Number (optional)</label>
+                    <input type="text" id="userTable" name="userTable">
+                </div>
+                <div class="form-group">
+                    <label for="userNote">Special Instructions (optional)</label>
+                    <textarea id="userNote" name="userNote" rows="3"></textarea>
+                </div>
+                <button type="submit" class="checkout-btn" id="checkoutBtn" disabled>
+                    Place Order - ₹<span id="checkoutTotal">0</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Loading -->
+    <div class="loading" id="loading">
+        Loading menu...
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
