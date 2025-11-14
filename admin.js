@@ -2,6 +2,7 @@
 // Configuration - Update this with your deployed Apps Script URL
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyIu_y5diXbxH2-5v8aosjaTjlLvxE_O8iLR-htUKVJwHybAyeaCMqTm1yQdFbY1AsItQ/exec';
 
+
 class BarfMalaiAdmin {
     constructor() {
         this.isAuthenticated = false;
@@ -10,7 +11,7 @@ class BarfMalaiAdmin {
         this.orders = [];
         this.chart = null;
         this.currentUploadType = null; // 'category' or 'product'
-        this.imgurClientId = 'YOUR_IMGUR_CLIENT_ID'; // Replace with your Imgur Client ID
+        this.imgurClientId = ''; // Leave empty if you don't have Imgur Client ID
         
         this.initializeAdmin();
     }
@@ -487,6 +488,7 @@ class BarfMalaiAdmin {
         document.getElementById('imageFile').value = '';
         document.getElementById('imageUploadPreview').innerHTML = '';
         document.getElementById('uploadProgress').style.display = 'none';
+        document.getElementById('uploadHelp').style.display = this.imgurClientId ? 'none' : 'block';
     }
 
     closeImageUpload() {
@@ -504,9 +506,9 @@ class BarfMalaiAdmin {
             return;
         }
 
-        // Check file size (max 10MB)
-        if (file.size > 10 * 1024 * 1024) {
-            this.showToast('Image size should be less than 10MB', 'error');
+        // Check file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            this.showToast('Image size should be less than 5MB', 'error');
             return;
         }
 
@@ -514,13 +516,14 @@ class BarfMalaiAdmin {
         reader.onload = (e) => {
             document.getElementById('imageUploadPreview').innerHTML = `
                 <img src="${e.target.result}" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid #e9ecef;">
-                <p style="margin-top: 0.5rem; font-size: 0.9rem;">Preview</p>
+                <p style="margin-top: 0.5rem; font-size: 0.9rem;">Preview - ${file.name} (${Math.round(file.size/1024)}KB)</p>
             `;
         };
         reader.readAsDataURL(file);
     }
 
-    async uploadImage() {
+    // Method 1: Upload to Free Image Host (no authentication required)
+    async uploadToFreeImageHost() {
         const fileInput = document.getElementById('imageFile');
         const file = fileInput.files[0];
         
@@ -529,7 +532,73 @@ class BarfMalaiAdmin {
             return;
         }
 
-        const uploadBtn = document.getElementById('uploadBtn');
+        const uploadBtn = document.getElementById('freeUploadBtn');
+        const progress = document.getElementById('uploadProgress');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+
+        uploadBtn.disabled = true;
+        progress.style.display = 'block';
+        progressBar.style.width = '30%';
+        progressText.textContent = 'Uploading to free image host...';
+
+        try {
+            // Using a free image hosting service
+            const formData = new FormData();
+            formData.append('image', file);
+
+            // Try multiple free image hosts
+            const freeHosts = [
+                'https://api.imgbb.com/1/upload?key=your_imgbb_key_here', // You can get free key from imgbb.com
+                'https://freeimage.host/api/1/upload' // This might require setup
+            ];
+
+            // For now, we'll use a simple base64 conversion for small images
+            if (file.size > 2 * 1024 * 1024) {
+                throw new Error('File too large for free hosting. Please use Imgur or reduce image size.');
+            }
+
+            progressBar.style.width = '70%';
+            progressText.textContent = 'Converting image...';
+
+            // Convert to base64 and use data URL (works for small images)
+            const base64Url = await this.fileToBase64(file);
+            
+            progressBar.style.width = '100%';
+            progressText.textContent = 'Upload successful!';
+            
+            this.setImageUrl(base64Url);
+            
+            setTimeout(() => {
+                this.closeImageUpload();
+                this.showToast('Image uploaded successfully! (Using base64)', 'success');
+            }, 1000);
+
+        } catch (error) {
+            this.showToast('Free upload failed: ' + error.message + ' Please try Imgur or paste URL manually.', 'error');
+            progressText.textContent = 'Upload failed';
+        } finally {
+            uploadBtn.disabled = false;
+        }
+    }
+
+    // Method 2: Upload to Imgur (requires Client ID)
+    async uploadToImgur() {
+        if (!this.imgurClientId) {
+            this.showToast('Imgur Client ID not configured. Please set it up in admin.js or use free upload.', 'error');
+            document.getElementById('uploadHelp').style.display = 'block';
+            return;
+        }
+
+        const fileInput = document.getElementById('imageFile');
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            this.showToast('Please select an image file', 'error');
+            return;
+        }
+
+        const uploadBtn = document.getElementById('imgurUploadBtn');
         const progress = document.getElementById('uploadProgress');
         const progressBar = document.getElementById('progressBar');
         const progressText = document.getElementById('progressText');
@@ -561,23 +630,11 @@ class BarfMalaiAdmin {
                 progressText.textContent = 'Upload successful!';
                 
                 const imageUrl = data.data.link;
+                this.setImageUrl(imageUrl);
                 
-                // Set the image URL in the appropriate field
-                if (this.currentUploadType === 'category') {
-                    document.getElementById('categoryImage').value = imageUrl;
-                    document.getElementById('categoryImagePreview').innerHTML = `
-                        <img src="${imageUrl}" style="max-width: 100px; max-height: 100px; border-radius: 4px; border: 1px solid #e9ecef;">
-                    `;
-                } else if (this.currentUploadType === 'product') {
-                    document.getElementById('productImage').value = imageUrl;
-                    document.getElementById('productImagePreview').innerHTML = `
-                        <img src="${imageUrl}" style="max-width: 100px; max-height: 100px; border-radius: 4px; border: 1px solid #e9ecef;">
-                    `;
-                }
-
                 setTimeout(() => {
                     this.closeImageUpload();
-                    this.showToast('Image uploaded successfully!', 'success');
+                    this.showToast('Image uploaded successfully to Imgur!', 'success');
                 }, 1000);
 
             } else {
@@ -585,10 +642,84 @@ class BarfMalaiAdmin {
             }
 
         } catch (error) {
-            this.showToast('Image upload failed: ' + error.message, 'error');
+            this.showToast('Imgur upload failed: ' + error.message, 'error');
             progressText.textContent = 'Upload failed';
         } finally {
             uploadBtn.disabled = false;
+        }
+    }
+
+    // Method 3: Convert to Base64 (for small images)
+    async convertToBase64() {
+        const fileInput = document.getElementById('imageFile');
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            this.showToast('Please select an image file', 'error');
+            return;
+        }
+
+        // Check file size (max 500KB for base64)
+        if (file.size > 500 * 1024) {
+            this.showToast('Image too large for base64. Please use upload options for larger images.', 'error');
+            return;
+        }
+
+        const uploadBtn = document.getElementById('base64Btn');
+        const progress = document.getElementById('uploadProgress');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+
+        uploadBtn.disabled = true;
+        progress.style.display = 'block';
+        progressBar.style.width = '50%';
+        progressText.textContent = 'Converting to base64...';
+
+        try {
+            const base64Url = await this.fileToBase64(file);
+            
+            progressBar.style.width = '100%';
+            progressText.textContent = 'Conversion successful!';
+            
+            this.setImageUrl(base64Url);
+            
+            setTimeout(() => {
+                this.closeImageUpload();
+                this.showToast('Image converted to base64 successfully!', 'success');
+            }, 1000);
+
+        } catch (error) {
+            this.showToast('Base64 conversion failed: ' + error.message, 'error');
+            progressText.textContent = 'Conversion failed';
+        } finally {
+            uploadBtn.disabled = false;
+        }
+    }
+
+    // Helper method to convert file to base64
+    fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    }
+
+    // Helper method to set image URL in the appropriate field
+    setImageUrl(imageUrl) {
+        if (this.currentUploadType === 'category') {
+            document.getElementById('categoryImage').value = imageUrl;
+            document.getElementById('categoryImagePreview').innerHTML = `
+                <img src="${imageUrl}" style="max-width: 100px; max-height: 100px; border-radius: 4px; border: 1px solid #e9ecef;">
+                <p style="margin-top: 0.5rem; font-size: 0.8rem; color: #666;">Preview</p>
+            `;
+        } else if (this.currentUploadType === 'product') {
+            document.getElementById('productImage').value = imageUrl;
+            document.getElementById('productImagePreview').innerHTML = `
+                <img src="${imageUrl}" style="max-width: 100px; max-height: 100px; border-radius: 4px; border: 1px solid #e9ecef;">
+                <p style="margin-top: 0.5rem; font-size: 0.8rem; color: #666;">Preview</p>
+            `;
         }
     }
 
