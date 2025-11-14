@@ -1,6 +1,6 @@
 // Barf Malai - Admin Dashboard JavaScript
 // Configuration - Update this with your deployed Apps Script URL
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwRG4W_4Jk1Jj_dyIHqWQgLphUL_KqcZJKZyuI1o_mB4XBRVIiOhqipqADrShUtL94lHg/exec';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzC9a5OXsLj6Mms8qPi6TRy5DzCrTnKnYYgZDHc9rzT_D98tGWvabmG898z8UMlI4rOEA/exec';
 
 class BarfMalaiAdmin {
     constructor() {
@@ -9,6 +9,8 @@ class BarfMalaiAdmin {
         this.products = [];
         this.orders = [];
         this.chart = null;
+        this.currentUploadType = null; // 'category' or 'product'
+        this.imgurClientId = 'YOUR_IMGUR_CLIENT_ID'; // Replace with your Imgur Client ID
         
         this.initializeAdmin();
     }
@@ -27,6 +29,9 @@ class BarfMalaiAdmin {
         
         // Product form
         document.getElementById('addProductForm').addEventListener('submit', (e) => this.handleAddProduct(e));
+        
+        // Image file input change
+        document.getElementById('imageFile').addEventListener('change', (e) => this.previewImage(e));
     }
 
     // Authentication
@@ -71,51 +76,55 @@ class BarfMalaiAdmin {
         document.getElementById('adminPassword').value = '';
     }
 
-    // API Call Helper
+    // API Call Helper - Fixed JSONP implementation
     async callAPI(action, params = {}) {
-        const url = new URL(SHEET_URL);
-        url.searchParams.set('action', action);
-        url.searchParams.set('callback', 'callback');
-        
-        Object.keys(params).forEach(key => {
-            if (params[key] !== undefined && params[key] !== null) {
-                url.searchParams.set(key, params[key]);
-            }
-        });
-
-        try {
-            const response = await this.jsonp(url.toString());
-            if (response.status === 'success') {
-                return response;
-            } else {
-                throw new Error(response.error || 'Unknown error occurred');
-            }
-        } catch (error) {
-            console.error('API Error:', error);
-            this.showToast(error.message, 'error');
-            throw error;
-        }
-    }
-
-    jsonp(url) {
         return new Promise((resolve, reject) => {
-            const callbackName = 'callback_' + Date.now() + '_' + Math.random().toString(36).substr(2);
+            const url = new URL(SHEET_URL);
+            url.searchParams.set('action', action);
             
+            Object.keys(params).forEach(key => {
+                if (params[key] !== undefined && params[key] !== null) {
+                    url.searchParams.set(key, params[key]);
+                }
+            });
+
+            // Create a unique callback name
+            const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+            
+            // Create script element
+            const script = document.createElement('script');
+            script.src = url + '&callback=' + callbackName;
+            
+            // Define the callback function
             window[callbackName] = (response) => {
                 delete window[callbackName];
-                document.head.removeChild(script);
-                resolve(response);
+                document.body.removeChild(script);
+                
+                if (response.status === 'success') {
+                    resolve(response);
+                } else {
+                    reject(new Error(response.error || 'Unknown error occurred'));
+                }
             };
 
-            const script = document.createElement('script');
-            script.src = url.replace('callback=callback', `callback=${callbackName}`);
+            // Error handling
             script.onerror = () => {
                 delete window[callbackName];
-                document.head.removeChild(script);
-                reject(new Error('JSONP request failed'));
+                document.body.removeChild(script);
+                reject(new Error('Network error: Failed to load script'));
             };
+
+            // Add to document
+            document.body.appendChild(script);
             
-            document.head.appendChild(script);
+            // Timeout after 30 seconds
+            setTimeout(() => {
+                if (window[callbackName]) {
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                    reject(new Error('Request timeout'));
+                }
+            }, 30000);
         });
     }
 
@@ -141,7 +150,7 @@ class BarfMalaiAdmin {
             this.populateCategoryDropdown();
 
         } catch (error) {
-            this.showToast('Failed to load dashboard data', 'error');
+            this.showToast('Failed to load dashboard data: ' + error.message, 'error');
         }
     }
 
@@ -171,6 +180,7 @@ class BarfMalaiAdmin {
             await this.callAPI('addCategory', { name, image });
             this.showToast('Category added successfully', 'success');
             e.target.reset();
+            document.getElementById('categoryImagePreview').innerHTML = '';
             await this.loadDashboardData(); // Refresh data
         } catch (error) {
             // Error already shown by callAPI
@@ -219,7 +229,7 @@ class BarfMalaiAdmin {
                     }
                 </td>
                 <td>
-                    <button class="btn btn-danger btn-sm" onclick="admin.deleteCategory('${category.name}')">
+                    <button class="btn btn-danger btn-sm" onclick="admin.deleteCategory('${this.escapeString(category.name)}')">
                         Delete
                     </button>
                 </td>
@@ -255,6 +265,11 @@ class BarfMalaiAdmin {
             return;
         }
 
+        if (price <= 0) {
+            this.showToast('Price must be greater than 0', 'error');
+            return;
+        }
+
         const submitBtn = e.target.querySelector('button');
         submitBtn.disabled = true;
         submitBtn.textContent = 'Adding...';
@@ -265,6 +280,7 @@ class BarfMalaiAdmin {
             });
             this.showToast('Product added successfully', 'success');
             e.target.reset();
+            document.getElementById('productImagePreview').innerHTML = '';
             await this.loadDashboardData();
         } catch (error) {
             // Error already shown by callAPI
@@ -304,7 +320,7 @@ class BarfMalaiAdmin {
                     </span>
                 </td>
                 <td>
-                    <button class="btn btn-danger btn-sm" onclick="admin.deleteProduct('${product.name}')">
+                    <button class="btn btn-danger btn-sm" onclick="admin.deleteProduct('${this.escapeString(product.name)}')">
                         Delete
                     </button>
                 </td>
@@ -317,6 +333,11 @@ class BarfMalaiAdmin {
     renderOrders() {
         const container = document.getElementById('ordersBody');
         container.innerHTML = '';
+
+        if (this.orders.length === 0) {
+            container.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">No orders found</td></tr>';
+            return;
+        }
 
         this.orders.forEach(order => {
             const row = document.createElement('tr');
@@ -341,11 +362,11 @@ class BarfMalaiAdmin {
                 </td>
                 <td>
                     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                        <button class="btn btn-primary btn-sm" onclick="admin.generateBill('${order.Timestamp}')">
+                        <button class="btn btn-primary btn-sm" onclick="admin.generateBill('${this.escapeString(order.Timestamp)}')">
                             Bill
                         </button>
                         ${order.Status === 'pending' ? 
-                            `<button class="btn btn-success btn-sm" onclick="admin.updateOrderStatus('${order.Timestamp}', 'completed')">
+                            `<button class="btn btn-success btn-sm" onclick="admin.updateOrderStatus('${this.escapeString(order.Timestamp)}', 'completed')">
                                 Complete
                             </button>` : ''
                         }
@@ -452,6 +473,118 @@ class BarfMalaiAdmin {
         window.print();
     }
 
+    // Image Upload Functionality
+    openImageUpload(type) {
+        this.currentUploadType = type;
+        document.getElementById('imageUploadModal').style.display = 'flex';
+        document.getElementById('imageFile').value = '';
+        document.getElementById('imageUploadPreview').innerHTML = '';
+        document.getElementById('uploadProgress').style.display = 'none';
+    }
+
+    closeImageUpload() {
+        document.getElementById('imageUploadModal').style.display = 'none';
+        this.currentUploadType = null;
+    }
+
+    previewImage(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Check file type
+        if (!file.type.match('image.*')) {
+            this.showToast('Please select an image file', 'error');
+            return;
+        }
+
+        // Check file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            this.showToast('Image size should be less than 10MB', 'error');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById('imageUploadPreview').innerHTML = `
+                <img src="${e.target.result}" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid #e9ecef;">
+                <p style="margin-top: 0.5rem; font-size: 0.9rem;">Preview</p>
+            `;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    async uploadImage() {
+        const fileInput = document.getElementById('imageFile');
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            this.showToast('Please select an image file', 'error');
+            return;
+        }
+
+        const uploadBtn = document.getElementById('uploadBtn');
+        const progress = document.getElementById('uploadProgress');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+
+        uploadBtn.disabled = true;
+        progress.style.display = 'block';
+        progressBar.style.width = '30%';
+        progressText.textContent = 'Uploading to Imgur...';
+
+        try {
+            const formData = new FormData();
+            formData.append('image', file);
+
+            const response = await fetch('https://api.imgur.com/3/image', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Client-ID ${this.imgurClientId}`
+                },
+                body: formData
+            });
+
+            progressBar.style.width = '70%';
+            progressText.textContent = 'Processing...';
+
+            const data = await response.json();
+
+            if (data.success) {
+                progressBar.style.width = '100%';
+                progressText.textContent = 'Upload successful!';
+                
+                const imageUrl = data.data.link;
+                
+                // Set the image URL in the appropriate field
+                if (this.currentUploadType === 'category') {
+                    document.getElementById('categoryImage').value = imageUrl;
+                    document.getElementById('categoryImagePreview').innerHTML = `
+                        <img src="${imageUrl}" style="max-width: 100px; max-height: 100px; border-radius: 4px; border: 1px solid #e9ecef;">
+                    `;
+                } else if (this.currentUploadType === 'product') {
+                    document.getElementById('productImage').value = imageUrl;
+                    document.getElementById('productImagePreview').innerHTML = `
+                        <img src="${imageUrl}" style="max-width: 100px; max-height: 100px; border-radius: 4px; border: 1px solid #e9ecef;">
+                    `;
+                }
+
+                setTimeout(() => {
+                    this.closeImageUpload();
+                    this.showToast('Image uploaded successfully!', 'success');
+                }, 1000);
+
+            } else {
+                throw new Error(data.data.error || 'Upload failed');
+            }
+
+        } catch (error) {
+            this.showToast('Image upload failed: ' + error.message, 'error');
+            progressText.textContent = 'Upload failed';
+        } finally {
+            uploadBtn.disabled = false;
+        }
+    }
+
     // Charts
     renderCharts() {
         const ctx = document.getElementById('salesChart').getContext('2d');
@@ -500,7 +633,11 @@ class BarfMalaiAdmin {
         });
     }
 
-    // Utility
+    // Utility functions
+    escapeString(str) {
+        return str.replace(/'/g, "\\'").replace(/"/g, '\\"');
+    }
+
     showToast(message, type = 'success') {
         const toast = document.getElementById('adminToast');
         toast.textContent = message;
