@@ -1,6 +1,6 @@
 // Barf Malai - User Frontend JavaScript
 // Configuration - Update this with your deployed Apps Script URL
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzC9a5OXsLj6Mms8qPi6TRy5DzCrTnKnYYgZDHc9rzT_D98tGWvabmG898z8UMlI4rOEA/exec';
+const SHEET_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
 
 class BarfMalaiApp {
     constructor() {
@@ -38,51 +38,62 @@ class BarfMalaiApp {
         });
     }
 
-    // API Call Helper
+    // API Call Helper - Fixed JSONP implementation
     async callAPI(action, params = {}) {
-        const url = new URL(SHEET_URL);
-        url.searchParams.set('action', action);
-        url.searchParams.set('callback', 'callback');
-        
-        Object.keys(params).forEach(key => {
-            if (params[key] !== undefined && params[key] !== null) {
-                url.searchParams.set(key, params[key]);
-            }
-        });
-
-        try {
-            const response = await this.jsonp(url.toString());
-            if (response.status === 'success') {
-                return response;
-            } else {
-                throw new Error(response.error || 'Unknown error occurred');
-            }
-        } catch (error) {
-            console.error('API Error:', error);
-            this.showToast(error.message, 'error');
-            throw error;
-        }
-    }
-
-    jsonp(url) {
         return new Promise((resolve, reject) => {
-            const callbackName = 'callback_' + Date.now() + '_' + Math.random().toString(36).substr(2);
+            const url = new URL(SHEET_URL);
+            url.searchParams.set('action', action);
             
+            Object.keys(params).forEach(key => {
+                if (params[key] !== undefined && params[key] !== null) {
+                    url.searchParams.set(key, encodeURIComponent(params[key]));
+                }
+            });
+
+            // Create a unique callback name
+            const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+            
+            // Create script element
+            const script = document.createElement('script');
+            script.src = url + '&callback=' + callbackName;
+            
+            // Define the callback function
             window[callbackName] = (response) => {
+                // Clean up
                 delete window[callbackName];
-                document.head.removeChild(script);
-                resolve(response);
+                if (script.parentNode) {
+                    script.parentNode.removeChild(script);
+                }
+                
+                if (response.status === 'success') {
+                    resolve(response);
+                } else {
+                    reject(new Error(response.error || 'Unknown error occurred'));
+                }
             };
 
-            const script = document.createElement('script');
-            script.src = url.replace('callback=callback', `callback=${callbackName}`);
+            // Error handling
             script.onerror = () => {
                 delete window[callbackName];
-                document.head.removeChild(script);
-                reject(new Error('JSONP request failed'));
+                if (script.parentNode) {
+                    script.parentNode.removeChild(script);
+                }
+                reject(new Error('Network error: Failed to load script. Check your web app URL.'));
             };
+
+            // Add to document
+            document.body.appendChild(script);
             
-            document.head.appendChild(script);
+            // Timeout after 30 seconds
+            setTimeout(() => {
+                if (window[callbackName]) {
+                    delete window[callbackName];
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
+                    reject(new Error('Request timeout'));
+                }
+            }, 30000);
         });
     }
 
@@ -109,7 +120,16 @@ class BarfMalaiApp {
             this.renderUI();
             document.getElementById('loading').style.display = 'none';
         } catch (error) {
-            document.getElementById('loading').innerHTML = 'Failed to load menu. Please refresh.';
+            console.error('Failed to load menu:', error);
+            document.getElementById('loading').innerHTML = `
+                <div style="text-align: center; padding: 2rem;">
+                    <h3>Failed to load menu</h3>
+                    <p>${error.message}</p>
+                    <button onclick="app.refreshMenu()" class="btn btn-primary" style="margin-top: 1rem;">
+                        Try Again
+                    </button>
+                </div>
+            `;
         }
     }
 
@@ -148,6 +168,7 @@ class BarfMalaiApp {
         localStorage.removeItem('barfMalai_menu');
         localStorage.removeItem('barfMalai_timestamp');
         document.getElementById('loading').style.display = 'block';
+        document.getElementById('loading').innerHTML = 'Loading menu...';
         await this.loadMenuData();
         this.showToast('Menu refreshed', 'success');
     }
@@ -160,6 +181,7 @@ class BarfMalaiApp {
 
     renderCategories() {
         const container = document.getElementById('categoriesContainer');
+        container.innerHTML = '';
         
         const allCategory = document.createElement('div');
         allCategory.className = `category-card ${this.currentCategory === 'all' ? 'active' : ''}`;
@@ -414,7 +436,7 @@ class BarfMalaiApp {
             localStorage.removeItem('barfMalai_timestamp');
 
         } catch (error) {
-            this.showToast('Failed to place order. Please try again.', 'error');
+            this.showToast('Failed to place order: ' + error.message, 'error');
         } finally {
             checkoutBtn.disabled = false;
             checkoutBtn.innerHTML = `Place Order - ₹<span id="checkoutTotal">0</span>`;
