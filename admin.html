@@ -3,780 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barf Malai - Admin</title>
+    <title>Barf Malai - Admin Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        /* Global Styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Poppins', 'Inter', sans-serif;
-            background: #fdf2f8;
-            color: #222;
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        /* Buttons */
-        .btn {
-            display: inline-block;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 500;
-            text-decoration: none;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: inherit;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #ff4e88, #ff8e53);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(255, 78, 136, 0.3);
-        }
-
-        .btn-sm {
-            padding: 8px 16px;
-            font-size: 0.875em;
-        }
-
-        .btn-warning {
-            background: #ffc107;
-            color: #212529;
-        }
-
-        .btn-danger {
-            background: #dc3545;
-            color: white;
-        }
-
-        /* Form Elements */
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            font-size: 1em;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: #ff4e88;
-            box-shadow: 0 0 0 3px rgba(255, 78, 136, 0.1);
-        }
-
-        textarea.form-input {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        /* Admin Specific Styles */
-        .admin-panel {
-            background: #fff;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            margin: 20px;
-            overflow: hidden;
-        }
-        
-        .admin-header {
-            background: linear-gradient(135deg, #ff4e88, #ff8e53);
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-        
-        .admin-nav {
-            display: flex;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
-        }
-        
-        .nav-tab {
-            padding: 15px 25px;
-            cursor: pointer;
-            border: none;
-            background: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-        
-        .nav-tab.active {
-            background: #fff;
-            border-bottom: 3px solid #ff4e88;
-            color: #ff4e88;
-        }
-        
-        .tab-content {
-            display: none;
-            padding: 25px;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .stat-card {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            text-align: center;
-            border-left: 4px solid #ff4e88;
-        }
-        
-        .stat-number {
-            font-size: 2.5em;
-            font-weight: bold;
-            color: #ff4e88;
-            margin: 10px 0;
-        }
-        
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        
-        .form-group.full-width {
-            grid-column: 1 / -1;
-        }
-        
-        .image-preview {
-            max-width: 200px;
-            max-height: 150px;
-            border-radius: 8px;
-            margin-top: 10px;
-            display: none;
-        }
-        
-        .table-container {
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-        }
-        
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .data-table th,
-        .data-table td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #e9ecef;
-        }
-        
-        .data-table th {
-            background: #f8f9fa;
-            font-weight: 600;
-        }
-        
-        .status-pending {
-            color: #ffc107;
-            font-weight: 600;
-        }
-        
-        .status-completed {
-            color: #28a745;
-            font-weight: 600;
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-        }
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #28a745;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            transform: translateY(100px);
-            opacity: 0;
-            transition: all 0.3s ease;
-            z-index: 1003;
-        }
-
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        .toast-content {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .admin-nav {
-                flex-wrap: wrap;
-            }
-            
-            .nav-tab {
-                padding: 10px 15px;
-                font-size: 0.9em;
-            }
-        }
-    </style>
 </head>
 <body>
-    <div class="admin-panel">
+    <!-- Login Modal -->
+    <div class="login-modal" id="loginModal">
+        <div class="login-content">
+            <h2 style="margin-bottom: 1rem; text-align: center;">Admin Login</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="adminPassword">Password</label>
+                    <input type="password" id="adminPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                    Login
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div class="admin-container" id="adminDashboard" style="display: none;">
+        <!-- Header -->
         <div class="admin-header">
-            <h1>❄️ Barf Malai Admin</h1>
-            <p>Manage your ice cream business efficiently</p>
+            <h1>Barf Malai Admin</h1>
+            <button class="btn btn-secondary" onclick="admin.logout()">Logout</button>
         </div>
-        
-        <div class="admin-nav">
-            <button class="nav-tab active" onclick="switchTab('dashboard')">📊 Dashboard</button>
-            <button class="nav-tab" onclick="switchTab('categories')">🏷️ Categories</button>
-            <button class="nav-tab" onclick="switchTab('products')">🍦 Products</button>
-            <button class="nav-tab" onclick="switchTab('orders')">📦 Orders</button>
-        </div>
-        
-        <!-- Dashboard Tab -->
-        <div id="dashboard" class="tab-content active">
-            <h2>Business Overview</h2>
-            <div class="stats-grid" id="statsGrid">
-                <div class="stat-card">
-                    <h3>Total Sales</h3>
-                    <div class="stat-number">₹0</div>
-                    <p>Loading...</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Total Orders</h3>
-                    <div class="stat-number">0</div>
-                    <p>Loading...</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Most Popular</h3>
-                    <div class="stat-number" style="font-size: 1.2em;">Loading...</div>
-                    <p>Best selling item</p>
-                </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid" id="statsContainer">
+            <div class="stat-card">
+                <div class="stat-value" id="totalOrders">0</div>
+                <div class="stat-label">Total Orders</div>
             </div>
-            
-            <h3 style="margin-top: 30px;">Recent Orders</h3>
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Time</th>
-                            <th>Customer</th>
-                            <th>Phone</th>
-                            <th>Total</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="recentOrders">
-                        <tr><td colspan="5" style="text-align: center;">Loading...</td></tr>
-                    </tbody>
-                </table>
+            <div class="stat-card">
+                <div class="stat-value" id="totalSales">₹0</div>
+                <div class="stat-label">Total Sales</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="todayOrders">0</div>
+                <div class="stat-label">Today's Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="pendingOrders">0</div>
+                <div class="stat-label">Pending Orders</div>
             </div>
         </div>
-        
-        <!-- Categories Tab -->
-        <div id="categories" class="tab-content">
-            <div class="form-grid">
-                <div>
-                    <h3>Add New Category</h3>
-                    <form id="categoryForm" onsubmit="addNewCategory(event)">
+
+        <!-- Charts -->
+        <div class="admin-card">
+            <h2 class="section-title">Sales Analytics</h2>
+            <canvas id="salesChart" height="100"></canvas>
+        </div>
+
+        <!-- Orders Management -->
+        <div class="admin-section">
+            <h2 class="section-title">Orders Management</h2>
+            <div class="admin-card">
+                <div class="table-responsive">
+                    <table class="table" id="ordersTable">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Customer</th>
+                                <th>Phone</th>
+                                <th>Table</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersBody">
+                            <!-- Orders will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Categories Management -->
+        <div class="admin-section">
+            <h2 class="section-title">Categories Management</h2>
+            <div class="admin-card">
+                <h3>Add New Category</h3>
+                <form id="addCategoryForm">
+                    <div class="form-row">
                         <div class="form-group">
-                            <label>Category Name</label>
-                            <input type="text" id="categoryName" required class="form-input">
+                            <label for="categoryName" class="required">Category Name</label>
+                            <input type="text" id="categoryName" required>
                         </div>
                         <div class="form-group">
-                            <label>Category Image</label>
-                            <input type="file" id="categoryImage" accept="image/*" required class="form-input">
-                            <img id="categoryPreview" class="image-preview">
+                            <label for="categoryImage">Image URL</label>
+                            <input type="url" id="categoryImage" placeholder="https://example.com/image.jpg">
                         </div>
+                    </div>
+                    <div class="form-actions">
                         <button type="submit" class="btn btn-primary">Add Category</button>
-                    </form>
-                </div>
-                
-                <div>
-                    <h3>Manage Categories</h3>
-                    <div id="categoriesList" class="table-container">
-                        <p>Loading categories...</p>
                     </div>
+                </form>
+
+                <h3 style="margin-top: 2rem;">Existing Categories</h3>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Image</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="categoriesBody">
+                            <!-- Categories will be loaded here -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-        
-        <!-- Products Tab -->
-        <div id="products" class="tab-content">
-            <div class="form-grid">
-                <div>
-                    <h3>Add New Product</h3>
-                    <form id="productForm" onsubmit="addNewProduct(event)">
+
+        <!-- Products Management -->
+        <div class="admin-section">
+            <h2 class="section-title">Products Management</h2>
+            <div class="admin-card">
+                <h3>Add New Product</h3>
+                <form id="addProductForm">
+                    <div class="form-row">
                         <div class="form-group">
-                            <label>Product Name</label>
-                            <input type="text" id="productName" required class="form-input">
+                            <label for="productName" class="required">Product Name</label>
+                            <input type="text" id="productName" required>
                         </div>
                         <div class="form-group">
-                            <label>Category</label>
-                            <select id="productCategory" required class="form-input">
-                                <option value="">Loading...</option>
+                            <label for="productPrice" class="required">Price (₹)</label>
+                            <input type="number" id="productPrice" step="0.01" min="0" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productCategory" class="required">Category</label>
+                            <select id="productCategory" required>
+                                <option value="">Select Category</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Price (₹)</label>
-                            <input type="number" id="productPrice" step="0.01" required class="form-input">
+                            <label for="productType" class="required">Type</label>
+                            <select id="productType" required>
+                                <option value="veg">🥬 Vegetarian</option>
+                                <option value="non-veg">🍗 Non-Vegetarian</option>
+                            </select>
                         </div>
+                    </div>
+                    <div class="form-row">
                         <div class="form-group">
-                            <label>Description</label>
-                            <textarea id="productDescription" class="form-input" rows="3"></textarea>
+                            <label for="productImage">Image URL</label>
+                            <input type="url" id="productImage" placeholder="https://example.com/image.jpg">
                         </div>
-                        <div class="form-group">
-                            <label>Product Image</label>
-                            <input type="file" id="productImage" accept="image/*" required class="form-input">
-                            <img id="productPreview" class="image-preview">
-                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="productDescription">Description</label>
+                        <textarea id="productDescription" rows="3"></textarea>
+                    </div>
+                    <div class="form-actions">
                         <button type="submit" class="btn btn-primary">Add Product</button>
-                    </form>
-                </div>
-                
-                <div>
-                    <h3>Manage Products</h3>
-                    <div id="productsList" class="table-container">
-                        <p>Loading products...</p>
                     </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Orders Tab -->
-        <div id="orders" class="tab-content">
-            <h3>All Orders</h3>
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Order Time</th>
-                            <th>Customer</th>
-                            <th>Phone</th>
-                            <th>Items</th>
-                            <th>Total</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ordersList">
-                        <tr><td colspan="7" style="text-align: center;">Loading orders...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+                </form>
 
-    <!-- Success Toast -->
-    <div class="toast" id="successToast">
-        <div class="toast-content">
-            <span class="toast-icon">✅</span>
-            <span class="toast-message" id="toastMessage">Operation successful!</span>
-        </div>
-    </div>
-
-    <script>
-        // Admin-specific JavaScript
-        function switchTab(tabName) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Remove active class from all nav tabs
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Show selected tab
-            document.getElementById(tabName).classList.add('active');
-            
-            // Add active class to clicked nav tab
-            event.target.classList.add('active');
-            
-            // Load data for the tab
-            if (tabName === 'dashboard') {
-                loadDashboard();
-            } else if (tabName === 'categories') {
-                loadCategories();
-            } else if (tabName === 'products') {
-                loadProducts();
-            } else if (tabName === 'orders') {
-                loadOrders();
-            }
-        }
-        
-        function loadDashboard() {
-            google.script.run
-                .withSuccessHandler(displayDashboard)
-                .withFailureHandler(showError)
-                .getAnalytics();
-        }
-        
-        function displayDashboard(data) {
-            const statsGrid = document.getElementById('statsGrid');
-            statsGrid.innerHTML = `
-                <div class="stat-card">
-                    <h3>Total Sales</h3>
-                    <div class="stat-number">₹${data.totalSales}</div>
-                    <p>All time revenue</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Total Orders</h3>
-                    <div class="stat-number">${data.totalOrders}</div>
-                    <p>Completed orders</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Most Popular</h3>
-                    <div class="stat-number" style="font-size: 1.2em;">${data.mostOrderedItem}</div>
-                    <p>Best selling item</p>
-                </div>
-            `;
-            
-            // Update recent orders
-            const recentOrders = document.getElementById('recentOrders');
-            if (data.recentOrders.length > 0) {
-                recentOrders.innerHTML = data.recentOrders.map(order => `
-                    <tr>
-                        <td>${new Date(order.timestamp).toLocaleString()}</td>
-                        <td>${order.customerName}</td>
-                        <td>${order.phone}</td>
-                        <td>₹${order.total}</td>
-                        <td><span class="status-${order.status.toLowerCase()}">${order.status}</span></td>
-                    </tr>
-                `).join('');
-            } else {
-                recentOrders.innerHTML = '<tr><td colspan="5" style="text-align: center;">No orders yet</td></tr>';
-            }
-        }
-        
-        // Load categories for admin
-        function loadCategories() {
-            google.script.run
-                .withSuccessHandler(displayCategories)
-                .withFailureHandler(showError)
-                .getCategories();
-        }
-        
-        function displayCategories(categories) {
-            const categoriesList = document.getElementById('categoriesList');
-            
-            if (categories.length > 0) {
-                categoriesList.innerHTML = `
-                    <table class="data-table">
+                <h3 style="margin-top: 2rem;">Existing Products</h3>
+                <div class="table-responsive">
+                    <table class="table">
                         <thead>
                             <tr>
-                                <th>Image</th>
                                 <th>Name</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${categories.map(cat => `
-                                <tr>
-                                    <td><img src="${cat.imageUrl}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"></td>
-                                    <td>${cat.name}</td>
-                                    <td class="action-buttons">
-                                        <button class="btn btn-sm btn-warning" onclick="editCategory('${cat.id}')">Edit</button>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteCategory('${cat.id}')">Delete</button>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                `;
-            } else {
-                categoriesList.innerHTML = '<p>No categories found. Add your first category!</p>';
-            }
-        }
-        
-        // Load products for admin
-        function loadProducts() {
-            Promise.all([
-                new Promise((resolve) => {
-                    google.script.run
-                        .withSuccessHandler(resolve)
-                        .withFailureHandler(showError)
-                        .getCategories();
-                }),
-                new Promise((resolve) => {
-                    google.script.run
-                        .withSuccessHandler(resolve)
-                        .withFailureHandler(showError)
-                        .getProducts();
-                })
-            ]).then(([categories, products]) => {
-                displayProducts(products, categories);
-            });
-        }
-        
-        function displayProducts(products, categories) {
-            const productsList = document.getElementById('productsList');
-            const categorySelect = document.getElementById('productCategory');
-            
-            // Update category dropdown
-            categorySelect.innerHTML = categories.map(cat => 
-                `<option value="${cat.name}">${cat.name}</option>`
-            ).join('');
-            
-            // Display products table
-            if (products.length > 0) {
-                productsList.innerHTML = `
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Image</th>
-                                <th>Name</th>
-                                <th>Category</th>
                                 <th>Price</th>
+                                <th>Category</th>
+                                <th>Type</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            ${products.map(product => `
-                                <tr>
-                                    <td><img src="${product.imageUrl}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"></td>
-                                    <td>${product.name}</td>
-                                    <td>${product.category}</td>
-                                    <td>₹${product.price}</td>
-                                    <td class="action-buttons">
-                                        <button class="btn btn-sm btn-warning" onclick="editProduct('${product.id}')">Edit</button>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteProduct('${product.id}')">Delete</button>
-                                    </td>
-                                </tr>
-                            `).join('')}
+                        <tbody id="productsBody">
+                            <!-- Products will be loaded here -->
                         </tbody>
                     </table>
-                `;
-            } else {
-                productsList.innerHTML = '<p>No products found. Add your first product!</p>';
-            }
-        }
-        
-        // Load orders for admin
-        function loadOrders() {
-            google.script.run
-                .withSuccessHandler(displayOrders)
-                .withFailureHandler(showError)
-                .getOrders();
-        }
-        
-        function displayOrders(orders) {
-            const ordersList = document.getElementById('ordersList');
-            
-            if (orders.length > 0) {
-                ordersList.innerHTML = orders.map(order => `
-                    <tr>
-                        <td>${new Date(order.timestamp).toLocaleString()}</td>
-                        <td>${order.customerName}</td>
-                        <td>${order.phone}</td>
-                        <td>${order.items.map(item => `${item.quantity}x ${item.name}`).join(', ')}</td>
-                        <td>₹${order.total}</td>
-                        <td>
-                            <select onchange="updateOrderStatus('${order.timestamp}', this.value)" class="form-input">
-                                <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
-                                <option value="Completed" ${order.status === 'Completed' ? 'selected' : ''}>Completed</option>
-                            </select>
-                        </td>
-                        <td>
-                            <button class="btn btn-sm btn-warning" onclick="viewOrderDetails('${order.timestamp}')">View</button>
-                        </td>
-                    </tr>
-                `).join('');
-            } else {
-                ordersList.innerHTML = '<tr><td colspan="7" style="text-align: center;">No orders yet</td></tr>';
-            }
-        }
-        
-        // Image preview handlers
-        document.getElementById('categoryImage').addEventListener('change', function(e) {
-            previewImage(e.target, 'categoryPreview');
-        });
-        
-        document.getElementById('productImage').addEventListener('change', function(e) {
-            previewImage(e.target, 'productPreview');
-        });
-        
-        function previewImage(input, previewId) {
-            const file = input.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const preview = document.getElementById(previewId);
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                }
-                reader.readAsDataURL(file);
-            }
-        }
-        
-        // Category management
-        function addNewCategory(event) {
-            event.preventDefault();
-            
-            const name = document.getElementById('categoryName').value;
-            const imageInput = document.getElementById('categoryImage');
-            
-            if (!imageInput.files[0]) {
-                showError('Please select an image');
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                google.script.run
-                    .withSuccessHandler(function(response) {
-                        showToast('Category added successfully!');
-                        document.getElementById('categoryForm').reset();
-                        document.getElementById('categoryPreview').style.display = 'none';
-                        loadCategories();
-                    })
-                    .withFailureHandler(showError)
-                    .addCategory(name, e.target.result);
-            };
-            reader.readAsDataURL(imageInput.files[0]);
-        }
-        
-        function editCategory(categoryId) {
-            showToast('Edit category functionality coming soon!');
-        }
-        
-        function deleteCategory(categoryId) {
-            if (confirm('Are you sure you want to delete this category?')) {
-                google.script.run
-                    .withSuccessHandler(function() {
-                        showToast('Category deleted successfully!');
-                        loadCategories();
-                    })
-                    .withFailureHandler(showError)
-                    .deleteCategory(categoryId);
-            }
-        }
-        
-        // Product management
-        function addNewProduct(event) {
-            event.preventDefault();
-            
-            const name = document.getElementById('productName').value;
-            const category = document.getElementById('productCategory').value;
-            const price = document.getElementById('productPrice').value;
-            const description = document.getElementById('productDescription').value;
-            const imageInput = document.getElementById('productImage');
-            
-            if (!imageInput.files[0]) {
-                showError('Please select an image');
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                google.script.run
-                    .withSuccessHandler(function(response) {
-                        showToast('Product added successfully!');
-                        document.getElementById('productForm').reset();
-                        document.getElementById('productPreview').style.display = 'none';
-                        loadProducts();
-                    })
-                    .withFailureHandler(showError)
-                    .addProduct(category, name, price, e.target.result, description);
-            };
-            reader.readAsDataURL(imageInput.files[0]);
-        }
-        
-        function editProduct(productId) {
-            showToast('Edit product functionality coming soon!');
-        }
-        
-        function deleteProduct(productId) {
-            if (confirm('Are you sure you want to delete this product?')) {
-                google.script.run
-                    .withSuccessHandler(function() {
-                        showToast('Product deleted successfully!');
-                        loadProducts();
-                    })
-                    .withFailureHandler(showError)
-                    .deleteProduct(productId);
-            }
-        }
-        
-        // Order management
-        function updateOrderStatus(timestamp, status) {
-            google.script.run
-                .withSuccessHandler(function() {
-                    showToast('Order status updated!');
-                })
-                .withFailureHandler(showError)
-                .updateOrderStatus(timestamp, status);
-        }
-        
-        function viewOrderDetails(timestamp) {
-            showToast('Order details view coming soon!');
-        }
-        
-        // Utility functions
-        function showError(error) {
-            console.error('Error:', error);
-            alert('An error occurred: ' + error.message);
-        }
-        
-        function showToast(message) {
-            const toast = document.getElementById('successToast');
-            const toastMessage = document.getElementById('toastMessage');
-            
-            toastMessage.textContent = message;
-            toast.classList.add('show');
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
-        
-        // Initialize admin panel
-        document.addEventListener('DOMContentLoaded', function() {
-            loadDashboard();
-        });
-    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bill Modal -->
+    <div class="login-modal" id="billModal" style="display: none;">
+        <div class="login-content" style="max-width: 600px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h2>Order Invoice</h2>
+                <button class="btn btn-primary" onclick="admin.printBill()">Print</button>
+            </div>
+            <div id="billContent">
+                <!-- Bill content will be loaded here -->
+            </div>
+            <div class="form-actions" style="margin-top: 1rem;">
+                <button class="btn btn-secondary" onclick="admin.closeBill()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="adminToast"></div>
+
+    <script src="admin.js"></script>
 </body>
 </html>
