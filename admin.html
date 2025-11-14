@@ -98,7 +98,13 @@
                         </div>
                         <div class="form-group">
                             <label for="categoryImage">Image URL</label>
-                            <input type="url" id="categoryImage" placeholder="https://example.com/image.jpg">
+                            <div style="display: flex; gap: 10px; align-items: end;">
+                                <input type="url" id="categoryImage" placeholder="https://example.com/image.jpg" style="flex: 1;">
+                                <button type="button" class="btn btn-secondary" onclick="admin.openImageUpload('category')" style="white-space: nowrap;">
+                                    📁 Upload Image
+                                </button>
+                            </div>
+                            <div id="categoryImagePreview" style="margin-top: 10px;"></div>
                         </div>
                     </div>
                     <div class="form-actions">
@@ -158,7 +164,13 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="productImage">Image URL</label>
-                            <input type="url" id="productImage" placeholder="https://example.com/image.jpg">
+                            <div style="display: flex; gap: 10px; align-items: end;">
+                                <input type="url" id="productImage" placeholder="https://example.com/image.jpg" style="flex: 1;">
+                                <button type="button" class="btn btn-secondary" onclick="admin.openImageUpload('product')" style="white-space: nowrap;">
+                                    📁 Upload Image
+                                </button>
+                            </div>
+                            <div id="productImagePreview" style="margin-top: 10px;"></div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -187,6 +199,32 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Upload Modal -->
+    <div class="login-modal" id="imageUploadModal" style="display: none;">
+        <div class="login-content" style="max-width: 500px;">
+            <h2 style="margin-bottom: 1rem; text-align: center;">Upload Image</h2>
+            <div class="form-group">
+                <label for="imageFile">Select Image</label>
+                <input type="file" id="imageFile" accept="image/*" style="padding: 0.5rem; border: 1px solid #e9ecef; border-radius: 8px; width: 100%;">
+            </div>
+            <div id="imageUploadPreview" style="margin: 1rem 0; text-align: center;"></div>
+            <div class="form-actions" style="display: flex; gap: 10px;">
+                <button type="button" class="btn btn-primary" onclick="admin.uploadImage()" id="uploadBtn" style="flex: 1;">
+                    Upload to Imgur
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="admin.closeImageUpload()" style="flex: 1;">
+                    Cancel
+                </button>
+            </div>
+            <div id="uploadProgress" style="margin-top: 1rem; display: none;">
+                <div style="background: #f0f0f0; border-radius: 10px; height: 10px;">
+                    <div id="progressBar" style="background: #4ecdc4; height: 100%; width: 0%; border-radius: 10px; transition: width 0.3s;"></div>
+                </div>
+                <div id="progressText" style="text-align: center; margin-top: 5px; font-size: 0.9rem;">Uploading...</div>
             </div>
         </div>
     </div>
